@@ -4,206 +4,193 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JM Massage Studio — Chat Assistant</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --green-dark: #1a3a2a;
-    --green-mid: #2d5a3d;
-    --green-light: #4a7c59;
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --cream: #faf7f0;
-    --cream-dark: #f0ebe0;
-    --text-dark: #1a1a1a;
-    --text-light: #7a7a7a;
-    --white: #ffffff;
-    --admin-bg: #f0f7f0;
-    --admin-border: #b8d4b8;
-    --admin-text: #2d5a3d;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: "DM Sans", sans-serif;
-    background: var(--green-dark);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background-image: radial-gradient(ellipse at 20% 50%, rgba(74,124,89,0.15) 0%, transparent 60%),
-                      radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.08) 0%, transparent 50%);
-  }
-  .chat-container {
-    width: 100%; max-width: 420px; height: 90vh; max-height: 780px;
-    background: var(--cream); border-radius: 24px;
-    display: flex; flex-direction: column; overflow: hidden;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.2);
-  }
-  .chat-header {
-    background: var(--green-dark); padding: 20px 20px 16px;
-    display: flex; align-items: center; gap: 14px;
-    border-bottom: 1px solid rgba(201,168,76,0.3);
-  }
-  .avatar {
-    width: 52px; height: 52px; border-radius: 50%;
-    border: 2px solid rgba(201,168,76,0.5); overflow: hidden; flex-shrink: 0;
-  }
-  .avatar img { width:100%; height:100%; object-fit:cover; object-position: center top; }
-  .header-info h1 {
-    font-family: "Cormorant Garamond", serif; font-size: 18px;
-    font-weight: 600; color: var(--white); letter-spacing: 0.3px;
-  }
-  .header-info p { font-size: 12px; color: var(--gold-light); font-weight: 300; margin-top: 2px; }
-  .status-dot {
-    width: 8px; height: 8px; background: #4ade80; border-radius: 50%;
-    display: inline-block; margin-right: 5px; animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  .messages {
-    flex:1; overflow-y:auto; padding: 20px 16px;
-    display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth;
-  }
-  .messages::-webkit-scrollbar{width:4px}
-  .messages::-webkit-scrollbar-thumb{background:var(--cream-dark);border-radius:2px}
-  .message { display:flex; flex-direction:column; animation:fadeUp 0.3s ease forwards; opacity:0; }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  .message.bot { align-items:flex-start; }
-  .message.user { align-items:flex-end; }
-  .bubble { max-width:82%; padding:12px 16px; border-radius:18px; font-size:14px; line-height:1.7; }
-  .bot .bubble {
-    background:var(--white); color:var(--text-dark);
-    border-radius:4px 18px 18px 18px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.07);
-    border:1px solid rgba(0,0,0,0.05); white-space:pre-wrap;
-  }
-  .user .bubble { background:var(--green-dark); color:var(--white); border-radius:18px 18px 4px 18px; }
-  .admin-note {
-    max-width:90%; margin-top:4px; padding:8px 12px;
-    background:var(--admin-bg); border:1px solid var(--admin-border);
-    border-radius:8px; font-size:12px; color:var(--admin-text); line-height:1.5;
-  }
-  .admin-note-label {
-    font-weight:600; font-size:11px; color:var(--green-mid);
-    margin-bottom:2px; text-transform:uppercase; letter-spacing:0.5px;
-  }
-  .date-divider {
-    text-align:center; font-size:11px; color:var(--text-light);
-    font-weight:300; letter-spacing:0.5px; margin:4px 0;
-  }
-  .typing {
-    display:flex; align-items:center; gap:4px; padding:12px 16px;
-    background:var(--white); border-radius:4px 18px 18px 18px;
-    width:fit-content; box-shadow:0 2px 8px rgba(0,0,0,0.07);
-  }
-  .typing span {
-    width:7px; height:7px; background:var(--green-light);
-    border-radius:50%; animation:bounce 1.2s infinite;
-  }
-  .typing span:nth-child(2){animation-delay:0.2s}
-  .typing span:nth-child(3){animation-delay:0.4s}
-  @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
-  .quick-replies { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
-  .qr-btn {
-    background:var(--white); border:1.5px solid var(--green-mid);
-    color:var(--green-dark); padding:8px 14px; border-radius:20px;
-    font-size:12.5px; font-family:"DM Sans",sans-serif;
-    cursor:pointer; transition:all 0.2s ease; font-weight:500;
-  }
-  .qr-btn:hover { background:var(--green-dark); color:var(--white); border-color:var(--green-dark); transform:translateY(-1px); }
-  .input-area {
-    padding:14px 16px 20px; background:var(--white);
-    border-top:1px solid var(--cream-dark); display:flex; gap:10px; align-items:flex-end;
-  }
-  .input-wrap {
-    flex:1; background:var(--cream); border-radius:22px;
-    border:1.5px solid var(--cream-dark); padding:10px 16px; transition:border-color 0.2s;
-  }
-  .input-wrap:focus-within{border-color:var(--green-mid)}
-  #userInput {
-    width:100%; border:none; background:transparent;
-    font-family:"DM Sans",sans-serif; font-size:14px; color:var(--text-dark);
-    resize:none; outline:none; max-height:80px; line-height:1.5;
-  }
-  #userInput::placeholder{color:var(--text-light)}
-  .send-btn {
-    width:44px; height:44px; background:var(--green-dark); border:none;
-    border-radius:50%; cursor:pointer; display:flex; align-items:center;
-    justify-content:center; flex-shrink:0; transition:all 0.2s ease;
-  }
-  .send-btn:hover{background:var(--green-mid);transform:scale(1.05)}
-  .send-btn:active{transform:scale(0.95)}
-  .send-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-  .send-btn svg{width:18px;height:18px;fill:var(--white)}
-  .lang-note {
-    text-align:center; font-size:11px; color:var(--text-light);
-    padding:0 16px 8px; background:var(--white);
-  }
+:root{--green-dark:#1a3a2a;--green-mid:#2d5a3d;--green-light:#4a7c59;--gold-light:#e8c97a;--cream:#faf7f0;--cream-dark:#f0ebe0;--text-dark:#1a1a1a;--text-light:#7a7a7a;--white:#ffffff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"DM Sans",sans-serif;background:var(--green-dark);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background-image:radial-gradient(ellipse at 20% 50%,rgba(74,124,89,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.08) 0%,transparent 50%);}
+.chat-container{width:100%;max-width:420px;height:90vh;max-height:780px;background:var(--cream);border-radius:24px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.2);}
+.chat-header{background:var(--green-dark);padding:20px 20px 16px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,168,76,.3);}
+.avatar{width:52px;height:52px;border-radius:50%;border:2px solid rgba(201,168,76,.5);overflow:hidden;flex-shrink:0;}
+.avatar img{width:100%;height:100%;object-fit:cover;object-position:center top;}
+.header-info h1{font-family:"Cormorant Garamond",serif;font-size:18px;font-weight:600;color:var(--white);letter-spacing:.3px;}
+.header-info p{font-size:12px;color:var(--gold-light);font-weight:300;margin-top:2px;}
+.status-dot{width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block;margin-right:5px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.lang-badge{font-size:11px;color:rgba(232,201,122,.7);margin-top:3px;letter-spacing:.3px;}
+.messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:var(--cream-dark);border-radius:2px}
+.message{display:flex;flex-direction:column;animation:fadeUp .3s ease forwards;opacity:0;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.message.bot{align-items:flex-start}.message.user{align-items:flex-end}
+.bubble{max-width:82%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.7;}
+.bot .bubble{background:var(--white);color:var(--text-dark);border-radius:4px 18px 18px 18px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.05);white-space:pre-wrap;}
+.user .bubble{background:var(--green-dark);color:var(--white);border-radius:18px 18px 4px 18px;}
+.date-divider{text-align:center;font-size:11px;color:var(--text-light);font-weight:300;letter-spacing:.5px;margin:4px 0;}
+.typing{display:flex;align-items:center;gap:4px;padding:12px 16px;background:var(--white);border-radius:4px 18px 18px 18px;width:fit-content;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.typing span{width:7px;height:7px;background:var(--green-light);border-radius:50%;animation:bounce 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.quick-replies{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.qr-btn{background:var(--white);border:1.5px solid var(--green-mid);color:var(--green-dark);padding:8px 14px;border-radius:20px;font-size:12.5px;font-family:"DM Sans",sans-serif;cursor:pointer;transition:all .2s ease;font-weight:500;}
+.qr-btn:hover{background:var(--green-dark);color:var(--white);border-color:var(--green-dark);transform:translateY(-1px);}
+.input-area{padding:14px 16px 20px;background:var(--white);border-top:1px solid var(--cream-dark);display:flex;gap:10px;align-items:flex-end;}
+.input-wrap{flex:1;background:var(--cream);border-radius:22px;border:1.5px solid var(--cream-dark);padding:10px 16px;transition:border-color .2s;}
+.input-wrap:focus-within{border-color:var(--green-mid)}
+#userInput{width:100%;border:none;background:transparent;font-family:"DM Sans",sans-serif;font-size:14px;color:var(--text-dark);resize:none;outline:none;max-height:80px;line-height:1.5;}
+#userInput::placeholder{color:var(--text-light)}
+.send-btn{width:44px;height:44px;background:var(--green-dark);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s ease;}
+.send-btn:hover{background:var(--green-mid);transform:scale(1.05)}.send-btn:active{transform:scale(.95)}
+.send-btn svg{width:18px;height:18px;fill:var(--white)}
+.contact-card{background:linear-gradient(135deg,var(--green-dark),var(--green-mid));border-radius:10px;padding:12px 14px;color:var(--white);font-size:13px;line-height:1.8;margin-top:4px;}
+.contact-card a{color:var(--gold-light);text-decoration:none;}
 </style>
 </head>
 <body>
 <div class="chat-container">
   <div class="chat-header">
-    <div class="avatar">
-      <img src="data:image/jpeg;base64,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" alt="JM">
-    </div>
+    <div class="avatar"><img src="data:image/jpeg;base64,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" alt="JM"></div>
     <div class="header-info">
       <h1>JM Massage Studio</h1>
-      <p><span class="status-dot"></span>Online · Changklan, Chiang Mai</p>
+      <p><span class="status-dot"></span>Online &middot; Changklan, Chiang Mai</p>
+      <p class="lang-badge">&#127988; This assistant supports English only</p>
     </div>
   </div>
-  <div class="messages" id="messages">
-    <div class="date-divider">Today</div>
-  </div>
-  <div class="lang-note">🌍 สอบถามได้ทุกภาษา · English · ภาษาไทย · 中文 · 한국어</div>
+  <div class="messages" id="messages"><div class="date-divider">Today</div></div>
   <div class="input-area">
     <div class="input-wrap">
-      <textarea id="userInput" rows="1" placeholder="ถามได้เลยครับ…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <textarea id="userInput" rows="1" placeholder="Ask us anything&hellip;" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
     </div>
-    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+    <button class="send-btn" onclick="sendMessage()">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
   </div>
 </div>
 <script>
-const SYSTEM_PROMPT = ;
 
-let conversationHistory = [];
+const CONTACT_HTML = '<div class="contact-card">Please contact our team directly during opening hours (10AM\u201310PM):<br><br>\uD83D\uDCF1 <a href="tel:+66633946422">+66 63-394-6422</a> (Call / WhatsApp)<br>\uD83D\uDCAC LINE: <a href="https://line.me/ti/p/@jmmassage">@jmmassage</a><br>\u2709\uFE0F <a href="mailto:jmmassagetherapycm@gmail.com">jmmassagetherapycm@gmail.com</a></div>';
 
-function addMessage(text, sender) {
+function isNonEnglish(text) {
+  return /[\u0E00-\u0E7F\u4E00-\u9FFF\uAC00-\uD7AF\u3040-\u30FF\u0600-\u06FF]/.test(text);
+}
+
+const KB = [
+  { id:"hours",
+    patterns:[/opening hours?/i,/what time/i,/when (do you |are you )?open/i,/when (do you |are you )?close/i,/closing time/i,/open (today|daily|every day)/i,/hours of operation/i],
+    answer:"We are open every day from 10:00 AM to 10:00 PM \uD83C\uDF3F" },
+  { id:"location",
+    patterns:[/where (are you|is the studio|is jm)/i,/address/i,/location/i,/how to (get|find|reach)/i,/directions?/i,/night bazaar/i,/chang ?klan/i,/empress/i,/shangri.?la/i,/astra/i,/landmark/i,/nearby/i],
+    answer:"\uD83D\uDCCD We are located at:\n166/38 Chang Klan Road, Chiang Mai\n\nNearby landmarks:\n\u2022 Near The Empress Hotel Chiang Mai\n\u2022 Close to The Astra Condo & The Astra Sky River\n\u2022 Close to the Night Bazaar\n\u2022 Close to Shangri-La Chiang Mai\n\nEasy to find along Chang Klan Road! \uD83C\uDF3F" },
+  { id:"transport",
+    patterns:[/grab/i,/taxi/i,/how (to get|do i get|can i get) (here|there|to you)/i,/transport/i,/tuk.?tuk/i,/getting here/i,/get here/i],
+    answer:"\uD83D\uDE97 Yes, you can easily reach us by Grab or taxi!\n\nJust share our address:\n166/38 Chang Klan Road, Chiang Mai\n(near The Empress Hotel)\n\nGrab is widely available in Chiang Mai and very convenient \uD83D\uDE4F" },
+  { id:"parking",
+    patterns:[/park(ing)?/i,/car park/i,/where (to |can i )?park/i,/drive (here|to you)/i],
+    answer:"\uD83D\uDE97 Parking is available approximately 40 metres from our studio, on the same side of the street.\n\nLandmark: the building with the 'Love 98' sign \u2014 park inside the black fence.\n\nConditions:\n\u2022 Available during opening hours (10AM\u201310PM) only\n\u2022 Maximum 3 hours per vehicle\n\u2022 Please inform us of your licence plate number in advance\n\nContact us before you arrive: +66 63-394-6422 \uD83D\uDE4F" },
+  { id:"wifi",
+    patterns:[/wi.?fi/i,/internet/i,/wireless/i],
+    answer:"\uD83D\uDCF6 Yes, free WiFi is available for all our guests! \uD83C\uDF3F" },
+  { id:"luggage",
+    patterns:[/lugg?age/i,/bag(s)?/i,/baggage/i,/belongings?/i,/store (my|our)/i,/leave (my|our) (bag|stuff|things)/i,/storage/i,/suitcase/i],
+    answer:"\uD83E\uDDF3 Yes, you are welcome to leave your luggage with us!\n\nWe have a designated storage area for our guests' belongings, and our studio is equipped with CCTV for your peace of mind. \uD83D\uDE4F" },
+  { id:"shower",
+    patterns:[/shower/i,/bath(room)?/i,/wash (up|myself)/i,/freshen up/i,/after (the |my )?massage/i,/clean up/i],
+    answer:"\uD83D\uDEBF Yes, we have a shower room available!\n\nIf you'd like to use it after your session, please let us know in advance so we can arrange it for you.\n\nKindly note that shower time is limited to approximately 20 minutes per guest, as we may have back-to-back appointments. We appreciate your understanding! \uD83D\uDE4F" },
+  { id:"couples",
+    patterns:[/couple(s)?( massage)?/i,/two (people|person|of us)/i,/massage together/i,/partner/i,/same room/i,/together/i],
+    answer:"\uD83D\uDC91 Yes, we have a private couples room!\n\nYou and your partner can enjoy your massages together in the same space. Please book in advance to ensure availability. \uD83D\uDE4F" },
+  { id:"first_time",
+    patterns:[/first (time|visit)/i,/never (had|tried|been)/i,/new (to|here)/i,/recommend(ation)?.*duration/i,/how long.*first/i,/first.*how long/i,/beginner/i],
+    answer:"\uD83C\uDF3F For your first visit, we recommend a 90-minute session \u2014 it's the perfect length to fully relax and experience the massage.\n\nWe suggest starting with light to medium pressure so your body can adjust comfortably.\n\nOf course, 60 or 120 minutes are great options too \u2014 whatever suits you best! \uD83D\uDE4F" },
+  { id:"what_to_wear",
+    patterns:[/what (to wear|should i wear|do i wear)/i,/undress/i,/clothes?/i,/outfit/i,/wear (during|for)/i,/take off/i,/strip/i,/naked/i,/disrobe/i],
+    answer:"\uD83D\uDC55 What to wear:\n\n\u2022 Thai Massage \u2014 we provide a traditional Thai massage outfit to change into\n\n\u2022 Oil, Cream, Aloe Vera & Hot Stone massages \u2014 you will undress for the treatment. We provide disposable underwear and a towel/drape for your comfort and privacy throughout the session \uD83D\uDE4F" },
+  { id:"pain",
+    patterns:[/hurt(s)?/i,/pain(ful)?/i,/sore/i,/does it (hurt|feel)/i,/will it (hurt|be painful)/i,/too (hard|strong|rough)/i],
+    answer:"\uD83D\uDC86 A good massage should feel like just the right amount of pressure \u2014 you'll feel the therapist working on your muscles, but it should not be painful.\n\nYou can always ask to adjust the pressure level at any time during your session. Our therapists are here to make sure you are comfortable! \uD83D\uDE4F" },
+  { id:"injury",
+    patterns:[/bruise(s)?/i,/injur(y|ies|ed)/i,/muscle pain/i,/sore muscle/i,/pulled muscle/i,/sprain/i,/swelling/i,/recent (injur|surger)/i],
+    answer:"\uD83E\uDE79 This depends on the individual situation.\n\nWe recommend consulting our team or staff at the studio before your session so we can advise you properly. Please don't hesitate to contact us:\n\uD83D\uDCF1 +66 63-394-6422 \uD83D\uDE4F" },
+  { id:"gift_card",
+    patterns:[/gift (card|voucher|certificate)/i,/voucher/i,/present/i,/give (a |as a )?gift/i,/someone special/i],
+    answer:"\uD83C\uDF81 Yes! We offer customisable Gift Cards \u2014 a thoughtful gift for someone you care about.\n\nPlease contact our team for more details:\n\uD83D\uDCF1 +66 63-394-6422\n\uD83D\uDCAC LINE: @jmmassage \uD83D\uDE4F" },
+  { id:"group",
+    patterns:[/group (book|reserv|visit|massage)/i,/large group/i,/corporate/i,/team (building|outing|massage)/i,/multiple (people|persons|guests)/i,/how many (people|persons)/i,/event/i],
+    answer:"\uD83D\uDC65 Yes, we welcome group bookings!\n\nPlease book at least 1 day in advance and contact our team to discuss the details and arrangements:\n\uD83D\uDCF1 +66 63-394-6422\n\uD83D\uDCAC LINE: @jmmassage \uD83D\uDE4F" },
+  { id:"waiting",
+    patterns:[/wait(ing)?( area)?/i,/companion/i,/friend (wait|come)/i,/someone (wait|with me)/i,/bring (a friend|someone)/i,/sit (and wait|outside)/i],
+    answer:"\uD83D\uDECB\uFE0F Companions are welcome to wait in our reception area, as long as the studio is not fully occupied and other guests are not disturbed.\n\nWe kindly ask that noise is kept to a minimum out of respect for other guests. \uD83D\uDE4F" },
+  { id:"outcall",
+    patterns:[/home service/i,/outcall/i,/hotel (service|massage|visit)/i,/come to (my|our|the hotel)/i,/mobile massage/i,/at home/i,/deliver/i],
+    answer:"We're sorry, we do not offer home service or outcall massage at this time.\n\nWe look forward to welcoming you at our studio! \uD83D\uDE4F\n\uD83D\uDCCD 166/38 Chang Klan Road, Chiang Mai" },
+  { id:"package_membership",
+    patterns:[/package(s)?/i,/membership/i,/member/i,/loyalty/i,/bundle/i,/deal(s)?/i,/discount(s)?/i,/special offer/i],
+    answer:"\u2728 We do have special packages and membership options!\n\nPlease contact our team directly for details and current offers:\n\uD83D\uDCF1 +66 63-394-6422\n\uD83D\uDCAC LINE: @jmmassage \uD83D\uDE4F" },
+  { id:"services_overview",
+    patterns:[/what (services?|massages?|treatments?)/i,/types? of (massage|treatment|service)/i,/what do you (offer|have|provide)/i,/full (list|menu)/i,/all (services?|massages?)/i,/tell me about (your )?services?/i,/^services?$/i,/^what.*offer/i,/massage (menu|list)/i],
+    answer:"\uD83C\uDF3F We offer the following massage services:\n\n\u2022 Thai Massage\n\u2022 Neck, Shoulder & Back Massage\n\u2022 Foot Massage\n\u2022 Deep Tissue Thai / Neck & Shoulder / Foot\n\u2022 Relaxing Head Massage\n\u2022 Thai Massage with Herbal Compress\n\u2022 Premium Botanical Oil Massage\n\u2022 Unscented Oil Massage\n\u2022 Thai Oil Fusion Massage\n\u2022 Aromatherapy Oil Massage\n\u2022 Hot or Icy Aromatherapy Oil Massage\n\u2022 JM Signature (Thai + Aroma Combo)\n\u2022 Cream / Aloe Vera Gel Massage\n\u2022 Body Scrub + Hot Aroma Oil Massage\n\u2022 Deep Tissue Oil Massage\n\u2022 Sports Massage\n\u2022 Warm Candle Oil Massage (NEW)\n\u2022 Hot Stone Full Body Massage\n\u2022 Hot Stone Foot Massage\n\nFor up-to-date pricing and current promotions, please contact our team directly \u2014 prices may vary \uD83D\uDE4F" },
+  { id:"price_any",
+    patterns:[/how much/i,/price(s)?/i,/cost(s)?/i,/rate(s)?/i,/fee(s)?/i,/how (expensive|cheap)/i,/what.*(charge|cost)/i,/thb/i,/baht/i],
+    answer:"For up-to-date pricing and current promotions, please contact our team directly \u2014 prices may vary and we may have special offers available!\n\n\uD83D\uDCF1 +66 63-394-6422 (Call / WhatsApp)\n\uD83D\uDCAC LINE: @jmmassage\n\u23F0 Every day, 10AM\u201310PM \uD83D\uDE4F" },
+  { id:"addons_free",
+    patterns:[/free (add.?on|extra|gift|complimentary)/i,/(complimentary|free).*(get|include|come with)/i,/what.*free/i,/free.*include/i,/bianstone/i,/foot soak/i,/herbal soak/i,/massage balm/i],
+    answer:"\u2728 Complimentary add-ons (FREE):\n\n\uD83E\uDDB6 Chinese Herbal Foot Soak \u2014 FREE\n   Arrive 15\u201320 minutes early to enjoy this\n\n\uD83C\uDF3F JM Massage Balm \u2014 FREE\n   Applied during your session at no extra charge\n\n\uD83D\uDC8E Bianstone Heated Neck & Shoulder Massage \u2014 FREE\n   For sessions 90 minutes or longer, performed at the end\n\nThese are our little gifts to you \uD83C\uDF81\uD83D\uDE4F" },
+  { id:"addons_paid",
+    patterns:[/paid add.?on/i,/extra (service|option)/i,/upgrade/i,/coconut oil/i,/can (i |you )?add/i],
+    answer:"\u2795 Available paid add-ons:\n\u2022 Body Scrub (30 min) \u2014 available with oil massage only\n\u2022 Upgrade to cold-pressed coconut oil\n\u2022 Add herbal compress to any 90+ min massage\n\nFor exact pricing, contact our team \uD83D\uDE4F\n\uD83D\uDCF1 +66 63-394-6422" },
+  { id:"booking",
+    patterns:[/how (to |do i |can i )?book/i,/make (a )?reservation/i,/make (a )?booking/i,/how (to |do i )?reserve/i,/book (an )?appointment/i,/can i book/i],
+    answer:"\uD83D\uDCCB How to book:\n\n\u2705 Book any number of days in advance\n\u2705 Same-day: at least 2\u20133 hours ahead\n\u26A1 Last-minute (under 2 hours): call us directly to check availability\n\nPlease respond to our confirmation promptly \u2014 we cannot hold your slot without a reply.\n\nContact us to book:\n\uD83D\uDCF1 +66 63-394-6422 (Call / WhatsApp)\n\uD83D\uDCAC LINE: @jmmassage\n\uD83D\uDD17 Book online: https://nascent129-tech.github.io/jmbooking3/\n\nDeposit: 200 THB/person for large groups or to guarantee your slot \uD83D\uDE4F" },
+  { id:"cancellation",
+    patterns:[/cancel(lation)?/i,/reschedule/i,/change (my |the )?booking/i,/change (my |the )?appointment/i,/refund.*deposit/i,/deposit.*refund/i],
+    answer:"\uD83D\uDCCC Cancellation Policy:\n\n\u2705 No cancellation fee\n\u26A0\uFE0F Cancel or change less than 24 hours before your session \u2014 deposit is non-refundable\n\u2705 Cancel more than 24 hours in advance \u2014 deposit can be transferred or refunded\n\nTo cancel or reschedule:\n\uD83D\uDCF1 +66 63-394-6422 \uD83D\uDE4F" },
+  { id:"late",
+    patterns:[/late (arrival|policy)/i,/what if (i.?m?|i am) late/i,/arrive late/i,/running late/i,/late policy/i],
+    answer:"\u23F1\uFE0F Late Arrival Policy:\n\nWe recommend arriving 5 minutes early \uD83D\uDE4F\n\n\u26A0\uFE0F More than 15 minutes late \u2014 the late time will be deducted from your session\n\u274C 30 minutes or more late \u2014 we reserve the right to cancel the appointment (deposit non-refundable)" },
+  { id:"payment",
+    patterns:[/pay(ment)?/i,/how (to pay|do i pay|can i pay)/i,/accept(ed)? (payment|card|cash)/i,/credit card/i,/cash/i,/alipay/i,/wechat pay/i,/promptpay/i,/qr (code|payment)/i,/gln/i,/apple pay/i,/google pay/i,/unionpay/i],
+    answer:"\uD83D\uDCB3 Payment methods we accept:\n\n\uD83D\uDCB5 Cash\n\uD83D\uDCF1 Thai QR / PromptPay\n\uD83D\uDCB3 Credit Card (contactless NFC tap via phone)\n\uD83C\uDDE8\uD83C\uDDF3 Alipay / WeChat Pay / UnionPay\n\uD83C\uDF4E Apple Pay\n\uD83E\uDD16 Google Pay\n\uD83C\uDDF0\uD83C\uDDF7 GLN Scan (popular with Korean guests)\n\nNo-fee options: Cash, Thai QR, GLN Scan\n\nNote: Some payment methods such as credit card may be subject to a small bank fee per transaction \uD83D\uDE4F" },
+  { id:"health",
+    patterns:[/health (condition|form|check|concern|safety)/i,/can (i|you|someone) (get|have|receive) (a )?massage (if|with|when)/i,/is (it |a )?massage safe/i,/contraindic/i,/not (allowed|suitable) (for|to)/i,/medical condition/i,/health/i,/safe(ty)?/i],
+    answer:"\uD83C\uDF3F Health & Safety:\n\nFor your safety, massage is NOT recommended if you have any of the following:\n\n\u274C Under the influence of alcohol\n\u274C Pregnancy\n\u274C Serious spinal problems (e.g. herniated disc)\n\u274C Recent injury, surgery, or fractures\n\u274C Severe heart disease or high-risk medical condition\n\u274C Cancer or currently undergoing treatment\n\u274C Infectious skin conditions or open wounds\n\u274C Allergies to oils or balms\n\nYou will complete a short health confirmation form on arrival \uD83D\uDCCB\n\nIf you have specific health concerns, please contact us directly \uD83D\uDE4F" },
+  { id:"children",
+    patterns:[/child(ren)?/i,/kid(s)?/i,/teenager(s)?/i,/teen(s)?/i,/young (person|people|guest)/i,/minor(s)?/i,/family room/i,/how old/i,/age limit/i,/age (requirement|restriction)/i],
+    answer:"\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67 Children & Families are warmly welcome!\n\n\u2705 Children and teenagers can receive massage with us\n\u2705 Our therapists are experienced with younger guests\n\u2705 Treatments are adjusted to be gentle, safe, and age-appropriate\n\u2705 Private family rooms available \u2014 the whole family can relax together\n\nPlease feel free to contact us if you have specific questions \uD83D\uDE4F" },
+  { id:"therapist",
+    patterns:[/therapist(s)?/i,/masseur(s)?/i,/masseuse(s)?/i,/who (will|does)/i,/male (therapist|staff)/i,/female (therapist|staff)/i,/same (therapist|person)/i,/request (a |specific )/i,/photo(s)? of (therapist|staff)/i],
+    answer:"\uD83D\uDC64 Our Therapists:\n\nAll licensed by the Ministry of Public Health with additional specialist training.\n\nYou can choose your preference:\n\u2022 Male therapist\n\u2022 Female therapist\n\u2022 No preference\n\nTo request a specific therapist, please book a few days in advance \u2014 subject to availability \uD83D\uDE4F\n\nNote: We do not share photos of our therapists, in line with Ministry of Public Health guidelines." },
+  { id:"contact",
+    patterns:[/contact/i,/reach (you|us)/i,/phone (number)?/i,/call (you|us)/i,/whatsapp/i,/line id/i,/email/i,/kakaotalk/i,/get in touch/i],
+    answer:"\uD83D\uDCDE Contact JM Massage Studio:\n\n\uD83D\uDCF1 Call / WhatsApp: +66 63-394-6422\n\uD83D\uDCAC LINE ID: @jmmassage\n\u2709\uFE0F Email: jmmassagetherapycm@gmail.com\n\n\u23F0 Every day, 10:00 AM \u2013 10:00 PM \uD83C\uDF3F" },
+  { id:"what_to_expect",
+    patterns:[/what (to expect|happens|should i (do|know|expect|bring))/i,/new (customer|guest)/i,/before (my|the) (appointment|session|visit)/i,/preparation/i],
+    answer:"\uD83C\uDF3F What to expect:\n\n1\uFE0F\u20E3 Arrive on time (5 min early recommended)\n2\uFE0F\u20E3 Want a free Herbal Foot Soak? Arrive 15\u201320 min early\n3\uFE0F\u20E3 Fill in a short health confirmation form\n4\uFE0F\u20E3 Tell us your pressure preference and any areas to focus on or avoid\n5\uFE0F\u20E3 Relax and enjoy your treatment \uD83C\uDF3F" },
+  { id:"pressure",
+    patterns:[/pressure (level|preference)/i,/how (hard|firm|strong|soft|gentle)/i,/light pressure/i,/strong pressure/i,/medium pressure/i,/can i (choose|request) pressure/i],
+    answer:"\uD83D\uDC86 You can choose your preferred pressure level:\n\n\u2022 Light / Soft \u2014 relaxing and gentle\n\u2022 Medium \u2014 moderate intensity\n\u2022 Strong / Firm \u2014 deep and intense\n\nYou can also request body stretching, joint cracking, or leg shaking. All noted on your health form when you arrive \uD83D\uDE4F" }
+];
+
+function matchQuery(input) {
+  const t = input.trim();
+  if (t.length < 2) return null;
+  for (const item of KB) {
+    for (const p of item.patterns) {
+      if (p.test(t)) return item;
+    }
+  }
+  return null;
+}
+
+function addMessage(text, sender, isHTML) {
   const msgs = document.getElementById("messages");
   const div = document.createElement("div");
   div.className = "message " + sender;
-
-  if (sender === "bot") {
-    const adminMatch = text.match(/\[🔔 แอดมิน:([^\]]+)\]/);
-    let cleanText = text;
-    let adminText = null;
-    if (adminMatch) {
-      cleanText = text.replace(adminMatch[0], "").trim();
-      adminText = adminMatch[1].trim();
-    }
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.textContent = cleanText;
-    div.appendChild(bubble);
-    if (adminText) {
-      const note = document.createElement("div");
-      note.className = "admin-note";
-      const label = document.createElement("div");
-      label.className = "admin-note-label";
-      label.textContent = "🔔 แอดมิน (สรุปสำหรับทีมงาน)";
-      note.appendChild(label);
-      const content = document.createElement("div");
-      content.textContent = adminText;
-      note.appendChild(content);
-      div.appendChild(note);
-    }
-  } else {
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.textContent = text;
-    div.appendChild(bubble);
-  }
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  if (isHTML) bubble.innerHTML = text;
+  else bubble.textContent = text;
+  div.appendChild(bubble);
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -213,7 +200,7 @@ function showTyping() {
   const div = document.createElement("div");
   div.className = "message bot";
   div.id = "typing-indicator";
-  div.innerHTML = "<div class="typing"><span></span><span></span><span></span></div>";
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -228,11 +215,11 @@ function addQuickReplies(replies) {
   const div = document.createElement("div");
   div.className = "quick-replies";
   div.id = "quick-reply-btns";
-  replies.forEach(r => {
+  replies.forEach(function(r) {
     const btn = document.createElement("button");
     btn.className = "qr-btn";
     btn.textContent = r;
-    btn.onclick = () => { removeQuickReplies(); handleUserMessage(r); };
+    btn.onclick = function() { removeQuickReplies(); handleUserMessage(r); };
     div.appendChild(btn);
   });
   msgs.appendChild(div);
@@ -244,46 +231,25 @@ function removeQuickReplies() {
   if (el) el.remove();
 }
 
-function setInputEnabled(enabled) {
-  document.getElementById("userInput").disabled = !enabled;
-  document.getElementById("sendBtn").disabled = !enabled;
-}
-
-async function askClaude(userMessage) {
-  conversationHistory.push({ role: "user", content: userMessage });
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      system: SYSTEM_PROMPT,
-      messages: conversationHistory
-    })
-  });
-  if (!response.ok) throw new Error("API error " + response.status);
-  const data = await response.json();
-  const reply = data.content?.[0]?.text || "ขออภัยครับ กรุณาติดต่อเราโดยตรงที่ +66 63-394-6422 ครับ";
-  conversationHistory.push({ role: "assistant", content: reply });
-  return reply;
-}
-
-async function handleUserMessage(text) {
-  addMessage(text, "user");
-  setInputEnabled(false);
+function handleUserMessage(text) {
+  removeQuickReplies();
+  addMessage(text, "user", false);
   showTyping();
-  try {
-    const reply = await askClaude(text);
+  setTimeout(function() {
     hideTyping();
-    addMessage(reply, "bot");
-  } catch (err) {
-    hideTyping();
-    addMessage("ขออภัยครับ เกิดข้อผิดพลาด กรุณาติดต่อเราโดยตรง:
-📱 +66 63-394-6422
-✉️ jmmassagetherapycm@gmail.com", "bot");
-  }
-  setInputEnabled(true);
-  document.getElementById("userInput").focus();
+    if (isNonEnglish(text)) {
+      addMessage("This assistant supports English only. \uD83D\uDE4F\n\nFor assistance in other languages, please contact our team directly during opening hours (10AM\u201310PM):", "bot", false);
+      setTimeout(function() { addMessage(CONTACT_HTML, "bot", true); }, 300);
+      return;
+    }
+    const match = matchQuery(text);
+    if (match) {
+      addMessage(match.answer, "bot", false);
+    } else {
+      addMessage("Thank you for your message! \uD83D\uDE4F\n\nI'm sorry, I don't have specific information about that. Please contact our team directly during opening hours (10AM\u201310PM) and we'll be happy to help:", "bot", false);
+      setTimeout(function() { addMessage(CONTACT_HTML, "bot", true); }, 300);
+    }
+  }, 700);
 }
 
 function sendMessage() {
@@ -292,7 +258,6 @@ function sendMessage() {
   if (!text) return;
   input.value = "";
   input.style.height = "auto";
-  removeQuickReplies();
   handleUserMessage(text);
 }
 
@@ -305,30 +270,27 @@ function autoResize(el) {
   el.style.height = el.scrollHeight + "px";
 }
 
-async function welcome() {
-  showTyping();
-  await new Promise(r => setTimeout(r, 1200));
-  hideTyping();
-  addMessage("สวัสดีครับ 🙏 ยินดีต้อนรับสู่ JM Massage Studio
-
-ผมคือผู้ช่วยออนไลน์ของทางสตูดิโอครับ พร้อมช่วยตอบคำถามเกี่ยวกับบริการ ราคา การจอง และข้อมูลต่าง ๆ
-
-มีอะไรให้ช่วยไหมครับ?", "bot");
-  await new Promise(r => setTimeout(r, 400));
-  addQuickReplies([
-    "🕐 เวลาเปิด-ปิด",
-    "🌿 บริการและราคา",
-    "📋 วิธีการจอง",
-    "💳 ช่องทางชำระเงิน",
-    "✨ บริการเสริมฟรี",
-    "🏥 ข้อมูลสุขภาพ",
-    "👨‍👩‍👧 เด็กและครอบครัว",
-    "🚗 ที่จอดรถ",
-    "📞 ติดต่อเรา"
-  ]);
+function welcome() {
+  setTimeout(function() {
+    addMessage("Sawasdee krab! \uD83D\uDE4F Welcome to JM Massage Studio.\n\nI'm your virtual assistant. How can I help you today?", "bot", false);
+    setTimeout(function() {
+      addQuickReplies([
+        "\uD83D\uDD50 Opening Hours",
+        "\uD83C\uDF3F What services do you offer?",
+        "\uD83D\uDCCB How to Book",
+        "\uD83D\uDCB3 Payment Methods",
+        "\u2728 Free Add-ons",
+        "\uD83C\uDFE5 Health & Safety",
+        "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67 Children & Families",
+        "\uD83D\uDE97 Parking",
+        "\uD83D\uDCDE Contact Us"
+      ]);
+    }, 400);
+  }, 800);
 }
 
 welcome();
+
 </script>
 </body>
 </html>
