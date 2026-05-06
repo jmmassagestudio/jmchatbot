@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JM Massage Studio — Chat Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1a3a2a;
+    --green-mid: #2d5a3d;
+    --green-light: #4a7c59;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --cream: #faf7f0;
+    --cream-dark: #f0ebe0;
+    --text-dark: #1a1a1a;
+    --text-light: #7a7a7a;
+    --white: #ffffff;
+    --admin-bg: #f0f7f0;
+    --admin-border: #b8d4b8;
+    --admin-text: #2d5a3d;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "DM Sans", sans-serif;
+    background: var(--green-dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-image: radial-gradient(ellipse at 20% 50%, rgba(74,124,89,0.15) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.08) 0%, transparent 50%);
+  }
+  .chat-container {
+    width: 100%; max-width: 420px; height: 90vh; max-height: 780px;
+    background: var(--cream); border-radius: 24px;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.2);
+  }
+  .chat-header {
+    background: var(--green-dark); padding: 20px 20px 16px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+  }
+  .avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 2px solid rgba(201,168,76,0.5); overflow: hidden; flex-shrink: 0;
+  }
+  .avatar img { width:100%; height:100%; object-fit:cover; object-position: center top; }
+  .header-info h1 {
+    font-family: "Cormorant Garamond", serif; font-size: 18px;
+    font-weight: 600; color: var(--white); letter-spacing: 0.3px;
+  }
+  .header-info p { font-size: 12px; color: var(--gold-light); font-weight: 300; margin-top: 2px; }
+  .status-dot {
+    width: 8px; height: 8px; background: #4ade80; border-radius: 50%;
+    display: inline-block; margin-right: 5px; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .messages {
+    flex:1; overflow-y:auto; padding: 20px 16px;
+    display:flex; flex-direction:column; gap:12px; scroll-behavior:smooth;
+  }
+  .messages::-webkit-scrollbar{width:4px}
+  .messages::-webkit-scrollbar-thumb{background:var(--cream-dark);border-radius:2px}
+  .message { display:flex; flex-direction:column; animation:fadeUp 0.3s ease forwards; opacity:0; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .message.bot { align-items:flex-start; }
+  .message.user { align-items:flex-end; }
+  .bubble { max-width:82%; padding:12px 16px; border-radius:18px; font-size:14px; line-height:1.7; }
+  .bot .bubble {
+    background:var(--white); color:var(--text-dark);
+    border-radius:4px 18px 18px 18px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.07);
+    border:1px solid rgba(0,0,0,0.05); white-space:pre-wrap;
+  }
+  .user .bubble { background:var(--green-dark); color:var(--white); border-radius:18px 18px 4px 18px; }
+  .admin-note {
+    max-width:90%; margin-top:4px; padding:8px 12px;
+    background:var(--admin-bg); border:1px solid var(--admin-border);
+    border-radius:8px; font-size:12px; color:var(--admin-text); line-height:1.5;
+  }
+  .admin-note-label {
+    font-weight:600; font-size:11px; color:var(--green-mid);
+    margin-bottom:2px; text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .date-divider {
+    text-align:center; font-size:11px; color:var(--text-light);
+    font-weight:300; letter-spacing:0.5px; margin:4px 0;
+  }
+  .typing {
+    display:flex; align-items:center; gap:4px; padding:12px 16px;
+    background:var(--white); border-radius:4px 18px 18px 18px;
+    width:fit-content; box-shadow:0 2px 8px rgba(0,0,0,0.07);
+  }
+  .typing span {
+    width:7px; height:7px; background:var(--green-light);
+    border-radius:50%; animation:bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2){animation-delay:0.2s}
+  .typing span:nth-child(3){animation-delay:0.4s}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+  .quick-replies { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .qr-btn {
+    background:var(--white); border:1.5px solid var(--green-mid);
+    color:var(--green-dark); padding:8px 14px; border-radius:20px;
+    font-size:12.5px; font-family:"DM Sans",sans-serif;
+    cursor:pointer; transition:all 0.2s ease; font-weight:500;
+  }
+  .qr-btn:hover { background:var(--green-dark); color:var(--white); border-color:var(--green-dark); transform:translateY(-1px); }
+  .input-area {
+    padding:14px 16px 20px; background:var(--white);
+    border-top:1px solid var(--cream-dark); display:flex; gap:10px; align-items:flex-end;
+  }
+  .input-wrap {
+    flex:1; background:var(--cream); border-radius:22px;
+    border:1.5px solid var(--cream-dark); padding:10px 16px; transition:border-color 0.2s;
+  }
+  .input-wrap:focus-within{border-color:var(--green-mid)}
+  #userInput {
+    width:100%; border:none; background:transparent;
+    font-family:"DM Sans",sans-serif; font-size:14px; color:var(--text-dark);
+    resize:none; outline:none; max-height:80px; line-height:1.5;
+  }
+  #userInput::placeholder{color:var(--text-light)}
+  .send-btn {
+    width:44px; height:44px; background:var(--green-dark); border:none;
+    border-radius:50%; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; flex-shrink:0; transition:all 0.2s ease;
+  }
+  .send-btn:hover{background:var(--green-mid);transform:scale(1.05)}
+  .send-btn:active{transform:scale(0.95)}
+  .send-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+  .send-btn svg{width:18px;height:18px;fill:var(--white)}
+  .lang-note {
+    text-align:center; font-size:11px; color:var(--text-light);
+    padding:0 16px 8px; background:var(--white);
+  }
+</style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="avatar">
+      <img src="data:image/jpeg;base64,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" alt="JM">
+    </div>
+    <div class="header-info">
+      <h1>JM Massage Studio</h1>
+      <p><span class="status-dot"></span>Online · Changklan, Chiang Mai</p>
+    </div>
+  </div>
+  <div class="messages" id="messages">
+    <div class="date-divider">Today</div>
+  </div>
+  <div class="lang-note">🌍 สอบถามได้ทุกภาษา · English · ภาษาไทย · 中文 · 한국어</div>
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="userInput" rows="1" placeholder="ถามได้เลยครับ…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    </div>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+const SYSTEM_PROMPT = ;
+
+let conversationHistory = [];
+
+function addMessage(text, sender) {
+  const msgs = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "message " + sender;
+
+  if (sender === "bot") {
+    const adminMatch = text.match(/\[🔔 แอดมิน:([^\]]+)\]/);
+    let cleanText = text;
+    let adminText = null;
+    if (adminMatch) {
+      cleanText = text.replace(adminMatch[0], "").trim();
+      adminText = adminMatch[1].trim();
+    }
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = cleanText;
+    div.appendChild(bubble);
+    if (adminText) {
+      const note = document.createElement("div");
+      note.className = "admin-note";
+      const label = document.createElement("div");
+      label.className = "admin-note-label";
+      label.textContent = "🔔 แอดมิน (สรุปสำหรับทีมงาน)";
+      note.appendChild(label);
+      const content = document.createElement("div");
+      content.textContent = adminText;
+      note.appendChild(content);
+      div.appendChild(note);
+    }
+  } else {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
+    div.appendChild(bubble);
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "message bot";
+  div.id = "typing-indicator";
+  div.innerHTML = "<div class="typing"><span></span><span></span><span></span></div>";
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById("typing-indicator");
+  if (el) el.remove();
+}
+
+function addQuickReplies(replies) {
+  const msgs = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "quick-replies";
+  div.id = "quick-reply-btns";
+  replies.forEach(r => {
+    const btn = document.createElement("button");
+    btn.className = "qr-btn";
+    btn.textContent = r;
+    btn.onclick = () => { removeQuickReplies(); handleUserMessage(r); };
+    div.appendChild(btn);
+  });
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeQuickReplies() {
+  const el = document.getElementById("quick-reply-btns");
+  if (el) el.remove();
+}
+
+function setInputEnabled(enabled) {
+  document.getElementById("userInput").disabled = !enabled;
+  document.getElementById("sendBtn").disabled = !enabled;
+}
+
+async function askClaude(userMessage) {
+  conversationHistory.push({ role: "user", content: userMessage });
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      system: SYSTEM_PROMPT,
+      messages: conversationHistory
+    })
+  });
+  if (!response.ok) throw new Error("API error " + response.status);
+  const data = await response.json();
+  const reply = data.content?.[0]?.text || "ขออภัยครับ กรุณาติดต่อเราโดยตรงที่ +66 63-394-6422 ครับ";
+  conversationHistory.push({ role: "assistant", content: reply });
+  return reply;
+}
+
+async function handleUserMessage(text) {
+  addMessage(text, "user");
+  setInputEnabled(false);
+  showTyping();
+  try {
+    const reply = await askClaude(text);
+    hideTyping();
+    addMessage(reply, "bot");
+  } catch (err) {
+    hideTyping();
+    addMessage("ขออภัยครับ เกิดข้อผิดพลาด กรุณาติดต่อเราโดยตรง:
+📱 +66 63-394-6422
+✉️ jmmassagetherapycm@gmail.com", "bot");
+  }
+  setInputEnabled(true);
+  document.getElementById("userInput").focus();
+}
+
+function sendMessage() {
+  const input = document.getElementById("userInput");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  input.style.height = "auto";
+  removeQuickReplies();
+  handleUserMessage(text);
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+async function welcome() {
+  showTyping();
+  await new Promise(r => setTimeout(r, 1200));
+  hideTyping();
+  addMessage("สวัสดีครับ 🙏 ยินดีต้อนรับสู่ JM Massage Studio
+
+ผมคือผู้ช่วยออนไลน์ของทางสตูดิโอครับ พร้อมช่วยตอบคำถามเกี่ยวกับบริการ ราคา การจอง และข้อมูลต่าง ๆ
+
+มีอะไรให้ช่วยไหมครับ?", "bot");
+  await new Promise(r => setTimeout(r, 400));
+  addQuickReplies([
+    "🕐 เวลาเปิด-ปิด",
+    "🌿 บริการและราคา",
+    "📋 วิธีการจอง",
+    "💳 ช่องทางชำระเงิน",
+    "✨ บริการเสริมฟรี",
+    "🏥 ข้อมูลสุขภาพ",
+    "👨‍👩‍👧 เด็กและครอบครัว",
+    "🚗 ที่จอดรถ",
+    "📞 ติดต่อเรา"
+  ]);
+}
+
+welcome();
+</script>
+</body>
+</html>
